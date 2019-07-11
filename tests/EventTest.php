@@ -23,9 +23,11 @@ class EventTest extends TestCase
     {
         $entity = new QueueCommandEntity();
 
-        $event = new Event($entity);
-        $this->assertInstanceOf(Base::class, $event);
+        $state = uniqid();
+
+        $event = new Event($entity, $state);
         $this->assertEquals($entity, $event->getQueueCommand());
+        $this->assertEquals($state, $event->getState());
 
     }
 

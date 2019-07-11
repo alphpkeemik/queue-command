@@ -8,33 +8,34 @@
 
 namespace Ambientia\QueueCommand;
 
-use Symfony\Contracts\EventDispatcher\Event as Base;
-
 /**
  * @author mati.andreas@ambientia.ee
  */
-class Event extends Base
+class Event
 {
-
     /**
-     * Queue command
-     *
      * @var QueueCommandEntity
      */
     private $QueueCommand;
 
-    public function __construct(QueueCommandEntity $QueueCommand)
+    /**
+     * @var string
+     */
+    private $state;
+
+    public function __construct(QueueCommandEntity $QueueCommand, string $state)
     {
         $this->QueueCommand = $QueueCommand;
+        $this->state = $state;
     }
 
-    /**
-     * get Queue command
-     *
-     * @return QueueCommandEntity
-     */
     public function getQueueCommand(): QueueCommandEntity
     {
         return $this->QueueCommand;
+    }
+
+    public function getState(): string
+    {
+        return $this->state;
     }
 }
