@@ -1,0 +1,31 @@
+{
+    "name": "ambientia/queue-command",
+    "description": "Purges old data from database",
+    "type": "library",
+    "authors": [
+        {
+            "name": "Mati Andreas",
+            "email": "mati.andreas@ambientia.ee"
+        }
+    ],
+    "license": "proprietary",
+    "autoload": {
+        "psr-4": {
+            "Ambientia\\QueueCommand\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Ambientia\\QueueCommand\\Tests\\": "tests/"
+        }
+    },
+    "require": {
+        "php" : "7.2.*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^8.2",
+        "symfony/var-dumper": "^4.3",
+        "friendsofphp/php-cs-fixer": "^2.15",
+        "phan/phan": "^2.2"
+    }
+}
