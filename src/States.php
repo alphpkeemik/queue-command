@@ -15,10 +15,8 @@ namespace Ambientia\QueueCommand;
  */
 class States
 {
-    const PENDING = 'pending';
     const PROCESSING = 'processing';
     const FAILED = 'failed';
-    const REPEATING = 'repeating';
     const FINISHED = 'finished';
     const FATALED = 'fataled';
 }

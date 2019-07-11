@@ -34,16 +34,14 @@ class StatesTest extends TestCase
 
     public function provideHasConstantAndConstantSame()
     {
-        yield ['PENDING', 'pending'];
         yield ['PROCESSING', 'processing'];
         yield ['FAILED', 'failed'];
-        yield ['REPEATING', 'repeating'];
         yield ['FINISHED', 'finished'];
         yield ['FATALED', 'fataled'];
     }
 
     public function testConstantCount(): void
     {
-        $this->assertCount(6, static::$c);
+        $this->assertCount(4, static::$c);
     }
 }
