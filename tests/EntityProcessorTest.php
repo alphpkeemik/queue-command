@@ -87,16 +87,6 @@ class EntityProcessorTest extends TestCase
         $this->assertTrue(true);
     }
 
-    private function assertArray(array $expected, ArrayObject $stack): void
-    {
-
-
-        $this->assertSame(
-            implode("\n", $expected),
-            implode("\n", $stack->getArrayCopy())
-        );
-    }
-
     public function testStackSuccess(): void
     {
         $stack = new ArrayObject();

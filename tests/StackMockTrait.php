@@ -34,4 +34,14 @@ trait StackMockTrait
 
         return $observer;
     }
+
+
+    private function assertArray(array $expected, ArrayObject $stack): void
+    {
+        $this->assertSame(
+            implode("\n", $expected),
+            implode("\n", $stack->getArrayCopy())
+        );
+    }
+
 }
