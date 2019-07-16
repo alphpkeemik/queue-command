@@ -18,7 +18,8 @@ trait StackMockTrait
     private function createStackMock(ArrayObject $result, string $class)
     {
         $mockBuilder = $this->getMockBuilder($class)
-            ->setMethodsExcept([]);
+            ->setMethodsExcept([])
+            ->disableOriginalConstructor();
 
         $observer = $mockBuilder->getMock();
 
@@ -28,7 +29,7 @@ trait StackMockTrait
 
                 $result->append("$class:$name");
 
-                return true;
+                return false;
             }));
 
 
