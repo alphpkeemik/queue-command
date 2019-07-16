@@ -36,7 +36,7 @@ class EventsTest extends TestCase
     {
         yield ['EXECUTE_STARTED', 'queue-command.execute.started'];
         yield ['EXECUTE_FINISHED', 'queue-command.execute.finished'];
-        yield ['EXECUTE_FATALED', 'queue-command.execute.fataled'];
+        yield ['EXECUTE_FATAL', 'queue-command.execute.fatal'];
         yield ['EXECUTE_FAILED', 'queue-command.execute.failed'];
     }
 

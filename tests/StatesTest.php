@@ -37,7 +37,7 @@ class StatesTest extends TestCase
         yield ['PROCESSING', 'processing'];
         yield ['FAILED', 'failed'];
         yield ['FINISHED', 'finished'];
-        yield ['FATALED', 'fataled'];
+        yield ['FATAL', 'fatal'];
     }
 
     public function testConstantCount(): void

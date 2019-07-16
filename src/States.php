@@ -18,5 +18,5 @@ class States
     const PROCESSING = 'processing';
     const FAILED = 'failed';
     const FINISHED = 'finished';
-    const FATALED = 'fataled';
+    const FATAL = 'fatal';
 }

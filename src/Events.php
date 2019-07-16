@@ -17,6 +17,6 @@ class Events
 {
     const EXECUTE_STARTED = 'queue-command.execute.started';
     const EXECUTE_FINISHED = 'queue-command.execute.finished';
-    const EXECUTE_FATALED = 'queue-command.execute.fataled';
+    const EXECUTE_FATAL = 'queue-command.execute.fatal';
     const EXECUTE_FAILED = 'queue-command.execute.failed';
 }
