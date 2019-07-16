@@ -15,8 +15,8 @@ namespace Ambientia\QueueCommand;
  */
 class Events
 {
-    const EXECUTE_STARTED = 'queue-command.execute.started';
-    const EXECUTE_FINISHED = 'queue-command.execute.finished';
-    const EXECUTE_FATAL = 'queue-command.execute.fatal';
-    const EXECUTE_FAILED = 'queue-command.execute.failed';
+    const EXECUTE_STARTED = 'started';
+    const EXECUTE_FINISHED = 'finished';
+    const EXECUTE_FATAL = 'fatal';
+    const EXECUTE_FAILED = 'failed';
 }

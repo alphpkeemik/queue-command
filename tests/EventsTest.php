@@ -34,10 +34,10 @@ class EventsTest extends TestCase
 
     public function provideHasConstantAndConstantSame()
     {
-        yield ['EXECUTE_STARTED', 'queue-command.execute.started'];
-        yield ['EXECUTE_FINISHED', 'queue-command.execute.finished'];
-        yield ['EXECUTE_FATAL', 'queue-command.execute.fatal'];
-        yield ['EXECUTE_FAILED', 'queue-command.execute.failed'];
+        yield ['EXECUTE_STARTED', 'started'];
+        yield ['EXECUTE_FINISHED', 'finished'];
+        yield ['EXECUTE_FATAL', 'fatal'];
+        yield ['EXECUTE_FAILED', 'failed'];
     }
 
     public function testConstantCount(): void
