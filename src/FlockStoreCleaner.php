@@ -34,14 +34,25 @@ class FlockStoreCleaner
      */
     private $logger;
 
-    public function __construct(ManagerRegistry $doctrine, Filesystem $filesystem, LoggerInterface $logger)
-    {
+    /**
+     * @var string
+     */
+    private $lockPath;
+
+    public function __construct(
+        ManagerRegistry $doctrine,
+        Filesystem $filesystem,
+        LoggerInterface $logger,
+        string $lockPath
+    ) {
         $this->doctrine = $doctrine;
         $this->filesystem = $filesystem;
         $this->logger = $logger;
+        $this->lockPath = $lockPath;
     }
 
-    public function process(string $lockPath): void
+
+    public function process(): void
     {
 
         $em = $this->doctrine->getManagerForClass(QueueCommandEntity::class);
@@ -55,14 +66,14 @@ class FlockStoreCleaner
         }
 
         $finder = new Finder();
-        $finder->in($lockPath);
+        $finder->in($this->lockPath);
         $finder->name('sf.*.*.lock');
         $finder->files();
 
         foreach ($finder as $file) {
             $this->logger->debug('removing abandoned lock file', [
                 'file' => $file->getFilename(),
-                'path' => $lockPath
+                'path' => $this->lockPath
             ]);
 
             if ($time and $file->getMTime() >= $time) {

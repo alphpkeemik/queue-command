@@ -94,8 +94,7 @@ class FlockStoreCleanerTest extends TestCase
     private function executeProcessor(
         ManagerRegistry $doctrine = null,
         LoggerInterface $logger = null,
-        Filesystem $fileSystem = null,
-        string $path = null
+        Filesystem $fileSystem = null
     ): void {
         if (!$doctrine) {
             $doctrine = $this->createDoctrine();
@@ -106,12 +105,9 @@ class FlockStoreCleanerTest extends TestCase
         if (!$fileSystem) {
             $fileSystem = $this->createMock(Filesystem::class);
         }
-        if (!$path) {
-            $path = $this->dir;
-        }
 
-        $processor = new FlockStoreCleaner($doctrine, $fileSystem, $logger);
-        $processor->process($path);
+        $processor = new FlockStoreCleaner($doctrine, $fileSystem, $logger, $this->dir);
+        $processor->process();
     }
 
     public function testAcceptance(): void
