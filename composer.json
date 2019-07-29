@@ -32,5 +32,12 @@
         "symfony/var-dumper": "^4.3",
         "friendsofphp/php-cs-fixer": "^2.15",
         "phan/phan": "^2.2"
+    },
+    "minimum-stability": "dev",
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0-dev"
+        }
     }
+  
 }
