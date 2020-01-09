@@ -192,7 +192,7 @@ class CrashedProcessorTest extends TestCase
             ->with(
                 ['status' => States::PROCESSING],
                 ['id' => 'ASC'],
-                0,
+                1,
                 $this->callback(function (int $offset) use (&$values) {
 
                     return array_shift($values) === $offset;

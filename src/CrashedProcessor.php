@@ -58,7 +58,7 @@ class CrashedProcessor
         $criteria = ['status' => States::PROCESSING];
         $order = ['id' => 'ASC'];
         $offset = 0;
-        while (($command = current($repo->findBy($criteria, $order, 0, $offset)))) {
+        while (($command = current($repo->findBy($criteria, $order, 1, $offset)))) {
             $offset++;
             $lock = $this->lockProvider->create($command);
             if (!$lock->acquire(false)) {
