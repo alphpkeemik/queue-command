@@ -25,7 +25,7 @@ class CriteriaBuilder implements CriteriaBuilderInterface
         $criteria->andWhere(
             $expr->orX(
                 $expr->isNull('ttl'),
-                $expr->gte('ttl', new DateTime())
+                $expr->lte('ttl', new DateTime())
             )
         );
         $criteria->orderBy([

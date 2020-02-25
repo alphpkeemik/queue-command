@@ -43,7 +43,7 @@ class CriteriaBuilderTest extends TestCase
         $params = $visitor->getParameters();
 
         $this->assertSame(
-            "$alias.status IS NULL AND ($alias.ttl IS NULL OR $alias.ttl >= :ttl)",
+            "$alias.status IS NULL AND ($alias.ttl IS NULL OR $alias.ttl <= :ttl)",
             (string)$expr
         );
         $this->assertCount(1, $params);
