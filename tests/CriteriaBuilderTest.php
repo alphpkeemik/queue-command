@@ -2,8 +2,6 @@
 
 /*
  * This file is part of the Ambientia QueueCommand package.
- *
- * (c) Ambientia Estonia OÜ
  */
 
 namespace Ambientia\QueueCommand\Tests;
@@ -30,8 +28,6 @@ class CriteriaBuilderTest extends TestCase
         $visitor
             ->expects($this->any())
             ->method($this->callback(function (string $name) {
-
-                dump($name);
 
                 return false;
             }));

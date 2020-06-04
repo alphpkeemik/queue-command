@@ -2,13 +2,11 @@
 
 /*
  * This file is part of the Ambientia QueueCommand package.
- *
- * (c) Ambientia Estonia OÜ
  */
 
 namespace Ambientia\QueueCommand;
 
-use Doctrine\Common\Persistence\ManagerRegistry;
+use Doctrine\Persistence\ManagerRegistry;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;

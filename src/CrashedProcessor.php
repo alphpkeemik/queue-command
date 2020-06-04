@@ -2,13 +2,11 @@
 
 /*
  * This file is part of the Ambientia QueueCommand package.
- *
- * (c) Ambientia Estonia OÜ
  */
 
 namespace Ambientia\QueueCommand;
 
-use Doctrine\Common\Persistence\ManagerRegistry;
+use Doctrine\Persistence\ManagerRegistry;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
 

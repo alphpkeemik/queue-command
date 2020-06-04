@@ -2,7 +2,8 @@
 
 PHP library for executing queued commands
 
-## Adding to queue
+## usage
+### Adding to queue
 ```
 <?php
 
@@ -19,7 +20,7 @@ $entityManager->persist($queueCommand);
 $entityManager->flush();
 ```
 
-## Creating queue command
+### Creating queue command
 ```
 <?php
 namespace App\MyModule;
@@ -39,17 +40,24 @@ class MyService
 }
 ```
 
-## Add cron
+### Add cron
 ` * * * * * ambientia:queue-command:execute >> /path/to/log/file 2>&1`
 
-## Running code fixer
+## development
+### todo
+* remove container dependency
+* todo replace merge it with find in EntityProcessor
+* add general manager/repository
+* todo add waiting / persistent running
+
+### Running code fixer
 
 Run php cs fixer `./vendor/bin/php-cs-fixer fix`
 
-## Running the tests
+### Running the tests
 
 Run tests with phpunit `./vendor/bin/phpunit`
 
-## Running analyzer
+### Running analyzer
 
 Run phan `./vendor/bin/phan`

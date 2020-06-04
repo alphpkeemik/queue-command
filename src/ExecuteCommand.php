@@ -2,8 +2,6 @@
 
 /*
  * This file is part of the Ambientia QueueCommand package.
- *
- * (c) Ambientia Estonia OÜ
  */
 
 namespace Ambientia\QueueCommand;
@@ -79,6 +77,6 @@ class ExecuteCommand extends Command
         $this->flockStoreCleaner->process();
         $criteria = $this->criteriaBuilder->build();
         $this->queueProcessor->process($criteria, $timeLimit);
-
+        return 0;
     }
 }

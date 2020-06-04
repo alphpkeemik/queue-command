@@ -2,15 +2,13 @@
 
 /*
  * This file is part of the Ambientia QueueCommand package.
- *
- * (c) Ambientia Estonia OÜ
  */
 
 namespace Ambientia\QueueCommand;
 
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Collections\Selectable;
-use Doctrine\Common\Persistence\ManagerRegistry;
+use Doctrine\Persistence\ManagerRegistry;
 use LogicException;
 use Psr\Log\LoggerInterface;
 

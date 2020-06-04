@@ -2,17 +2,15 @@
 
 /*
  * This file is part of the Ambientia QueueCommand package.
- *
- * (c) Ambientia Estonia OÜ
  */
 
 namespace Ambientia\QueueCommand;
 
 use DateTime;
-use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\Persistence\ObjectManager;
 use Psr\Container\ContainerInterface;
-use Psr\Log\LoggerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
+use Psr\Log\LoggerInterface;
 use Throwable;
 
 /**
@@ -71,6 +69,7 @@ class EntityProcessor
         }
         $command->setEnded(new DateTime());
         if (!$em->contains($command)) {
+            //todo replace it with find
             $em->merge($command);
         }
         $em->flush();

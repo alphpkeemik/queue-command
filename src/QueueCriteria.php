@@ -2,11 +2,10 @@
 
 /*
  * This file is part of the Ambientia QueueCommand package.
- *
- * (c) Ambientia Estonia OÜ
  */
 
 namespace Ambientia\QueueCommand;
+
 
 use Doctrine\Common\Collections\Criteria;
 use LogicException;
