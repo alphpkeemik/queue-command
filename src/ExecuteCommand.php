@@ -72,7 +72,7 @@ class ExecuteCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $timeLimit = $input->getOption('time-limit');
+        $timeLimit = (int) $input->getOption('time-limit');
         $this->crashedProcessor->process();
         $this->flockStoreCleaner->process();
         $criteria = $this->criteriaBuilder->build();

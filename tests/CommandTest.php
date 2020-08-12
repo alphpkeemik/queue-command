@@ -32,12 +32,12 @@ class CommandTest extends TestCase
             ->expects($this->once())
             ->method('process');
         $queueProcessor = $this->createMock(QueueProcessor::class);
-        $timeLimit = rand();
+        $timeLimit = (string) rand();
         $criteria = $this->createMock(QueueCriteria::class);
         $queueProcessor
             ->expects($this->once())
             ->method('process')
-            ->with($criteria, $timeLimit);
+            ->with($criteria, (int) $timeLimit);
         $criteriaBuilder = $this->createMock(CriteriaBuilder::class);
         $criteriaBuilder
             ->expects($this->once())
