@@ -71,7 +71,7 @@ class QueueProcessor
 
         $innerCriteria = new Criteria($criteria->getWhereExpression(), $criteria->getOrderings(), 0, 1);
         while (($command = $repo->matching($innerCriteria)->current())) {
-            if ($timeLimit && ($this->time() - $time) >= $timeLimit) {
+            if ($count && $timeLimit && ($this->time() - $time) >= $timeLimit) {
                 $this->logger->debug('Breaking after time limit', [
                     'timeLimit' => $timeLimit,
                     'elapsed' => ($this->time() - $time),

@@ -158,7 +158,6 @@ class QueueProcessorTest extends TestCase
             TimeProvider::class . ':time',
             QueueCriteria::class . ':getWhereExpression',
             QueueCriteria::class . ':getOrderings',
-            TimeProvider::class . ':time',
             LockProvider::class . ':create',
             LockInterface::class . ':acquire',
             EntityProcessor::class . ':process',
@@ -244,7 +243,7 @@ class QueueProcessorTest extends TestCase
                 [
                     'Processed command count',
                     [
-                        'count' => 0
+                        'count' => 1
                     ]
                 ]
             );
@@ -257,12 +256,26 @@ class QueueProcessorTest extends TestCase
             ->willReturnCallback(function () use (&$data) {
                 return array_shift($data);
             });
+        $entity = $this->createMock(QueueCommandEntity::class);
+        $selectable = $this->createMock(Selectable::class);
+        $selectable
+            ->expects($this->any())
+            ->method('matching')
+            ->willReturnCallback(function () use (&$entity) {
+                return new ArrayCollection([$entity]);
+            });
+
+        $doctrine = $this->createDoctrine($selectable);
+        $lock = $this->createConfiguredMock(LockInterface::class, [
+            'acquire' => true
+        ]);
         $lockProvider = $this->createMock(LockProvider::class);
         $lockProvider
-            ->expects($this->never())
-            ->method('create');
+            ->expects($this->once())
+            ->method('create')
+            ->willReturn($lock);
 
-        $this->executeProcessor(null, $logger, null, $lockProvider, $timeProvider, null, $timeLimit);
+        $this->executeProcessor($doctrine, $logger, null, $lockProvider, $timeProvider, null, $timeLimit);
     }
 
     public function testLockAcquire(): void
