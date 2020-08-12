@@ -7,7 +7,6 @@
 namespace Ambientia\QueueCommand;
 
 use DateTime;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
@@ -22,11 +21,17 @@ class Repository
      */
     private $doctrine;
 
+    /**
+     * @var HashGenerator
+     */
+    private $hashGenerator;
+
     private $flushNeeded = false;
 
-    public function __construct(ManagerRegistry $doctrine)
+    public function __construct(ManagerRegistry $doctrine, HashGenerator $hashGenerator)
     {
         $this->doctrine = $doctrine;
+        $this->hashGenerator = $hashGenerator;
     }
 
     public function countQueuedByService(string $service): int
@@ -51,12 +56,14 @@ class Repository
         int $priority = null,
         ...$arguments
     ): void {
-        $queueCommand = new QueueCommandEntity();
-        $queueCommand->setService($service);
-        $queueCommand->setArguments($arguments);
-        if ($ttl) {
-            $queueCommand->setTtl($ttl);
-        }
+        $hash = $this->hashGenerator->generate($service, $arguments);
+        $queueCommand = new QueueCommandEntity(
+            $service,
+            $arguments,
+            $hash,
+            $ttl
+        );
+
         if (null !== $priority) {
             $queueCommand->setPriority($priority);
         }
@@ -112,11 +119,12 @@ class Repository
 
         $expr = $qb->expr();
         $qb->select('c.id');
-        $qb->andWhere($expr->eq('c.service', ':service'));
+
+        $hash = $this->hashGenerator->generate($service, $arguments);
+
+        $qb->andWhere($expr->eq('c.hash', ':hash'));
         $qb->andWhere($qb->expr()->isNull('c.status'));
-        $qb->andWhere($expr->eq('c.arguments', ':arguments'));
-        $qb->setParameter('service', $service);
-        $qb->setParameter('arguments', $arguments, Types::OBJECT);
+        $qb->setParameter('hash', $hash);
         $qb->setMaxResults(1);
 
         if ($ttl) {

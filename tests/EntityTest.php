@@ -19,25 +19,34 @@ class EntityTest extends TestCase
 {
     public function testId(): void
     {
-        $entity = new QueueCommandEntity();
+        $entity = new QueueCommandEntity(
+            uniqid(), [], uniqid(), null
+        );
         $this->expectException(TypeError::class);
         $entity->getId();
     }
 
-    public function tesService(): void
+    public function testTtl(): void
     {
-        $entity = new QueueCommandEntity();
-        $this->expectException(TypeError::class);
-        $entity->getService();
+        $entity = new QueueCommandEntity(
+            uniqid(), [], uniqid(), null
+        );
+        $this->assertNull($entity->getTtl());
     }
 
     public function testValues(): void
     {
 
-        $entity = new QueueCommandEntity();
+        $service = uniqid();
+        $arguments = [uniqid()];
+        $hash = uniqid();
+        $ttl = new DateTime();
+        $entity = new QueueCommandEntity(
+            $service, $arguments, $hash, $ttl
+        );
 
-        $this->assertSame([], $entity->getArguments());
-        $this->assertNull($entity->getTtl());
+        $this->assertSame($arguments, $entity->getArguments());
+        $this->assertSame($ttl, $entity->getTtl());
         $this->assertNull($entity->getStatus());
         $this->assertNull($entity->getStarted());
         $this->assertNull($entity->getEnded());
@@ -51,17 +60,6 @@ class EntityTest extends TestCase
         $rc->setValue($entity, $id);
         $this->assertEquals($id, $entity->getId());
 
-        $service = uniqid();
-        $entity->setService($service);
-        $this->assertEquals($service, $entity->getService());
-
-        $arguments = [uniqid()];
-        $entity->setArguments($arguments);
-        $this->assertEquals($arguments, $entity->getArguments());
-
-        $ttl = new DateTime();
-        $entity->setTtl($ttl);
-        $this->assertEquals($ttl, $entity->getTtl());
 
         $status = uniqid();
         $entity->setStatus($status);

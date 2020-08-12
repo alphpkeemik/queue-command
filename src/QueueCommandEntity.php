@@ -37,6 +37,13 @@ class QueueCommandEntity
     private $arguments = [];
 
     /**
+     * hash of service and arguments for faster searhing
+     *
+     * @see HashGenerator
+     * @var string
+     */
+    private $hash;
+    /**
      * Offset executing time
      * if not set, command will be executed as soon as possible
      *
@@ -78,14 +85,18 @@ class QueueCommandEntity
      */
     private $priority = 0;
 
+    public function __construct(string $service, array $arguments, string $hash, ?DateTime $ttl)
+    {
+        $this->service = $service;
+        $this->arguments = $arguments;
+        $this->hash = $hash;
+        $this->ttl = $ttl;
+    }
+
+
     public function getId(): int
     {
         return $this->id;
-    }
-
-    public function setService(string $service): void
-    {
-        $this->service = $service;
     }
 
     public function getService(): string
@@ -93,22 +104,9 @@ class QueueCommandEntity
         return $this->service;
     }
 
-    /*
-     * @param array $arguments
-     */
-    public function setArguments(array $arguments): void
-    {
-        $this->arguments = $arguments;
-    }
-
     public function getArguments(): array
     {
         return $this->arguments;
-    }
-
-    public function setTtl(DateTime $ttl): void
-    {
-        $this->ttl = $ttl;
     }
 
     public function getTtl(): ?DateTime

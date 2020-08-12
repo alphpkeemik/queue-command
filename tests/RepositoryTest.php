@@ -6,6 +6,7 @@
 
 namespace Ambientia\QueueCommand\Tests;
 
+use Ambientia\QueueCommand\HashGenerator;
 use Ambientia\QueueCommand\QueueCommandEntity;
 use Ambientia\QueueCommand\Repository;
 use Ambientia\Toolset\Test\DoctrineMockTrait;
@@ -35,7 +36,10 @@ class RepositoryTest extends TestCase
     public function testCountQueuedByService(): void
     {
 
-        $service = new Repository($this->createDoctrine());
+        $service = new Repository(
+            $this->createDoctrine(),
+            new HashGenerator()
+        );
         $serviceName = uniqid();
 
         $actual = $service->countQueuedByService($serviceName);
@@ -93,7 +97,10 @@ class RepositoryTest extends TestCase
         $em = $doctrine->getManagerForClass(QueueCommandEntity::class);
         $em->getEventManager()->addEventListener($events, $listener);
 
-        $repository = new Repository($doctrine);
+        $repository = new Repository(
+            $doctrine,
+            new HashGenerator()
+        );
 
         //stage one, none queued
         $listener->calls = [];
@@ -113,6 +120,7 @@ class RepositoryTest extends TestCase
         $repository->flushAndClear();
         self::assertCount(0, $listener->calls);
     }
+
     /**
      * @dataProvider dataInsert
      *
@@ -145,7 +153,10 @@ class RepositoryTest extends TestCase
         $em = $doctrine->getManagerForClass(QueueCommandEntity::class);
         $em->getEventManager()->addEventListener($events, $listener);
 
-        $repository = new Repository($doctrine);
+        $repository = new Repository(
+            $doctrine,
+            new HashGenerator()
+        );
 
         //stage one, none queued
         $listener->calls = [];

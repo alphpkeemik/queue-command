@@ -19,7 +19,7 @@ class EventTest extends TestCase
 
     public function testTest(): void
     {
-        $entity = new QueueCommandEntity();
+        $entity = $this->createMock(QueueCommandEntity::class);
 
         $state = uniqid();
 

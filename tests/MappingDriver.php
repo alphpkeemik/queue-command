@@ -46,6 +46,10 @@ class MappingDriver implements \Doctrine\Persistence\Mapping\Driver\MappingDrive
                     $mapping['type'] = 'array';
                     break;
 
+                case 'hash':
+                    $mapping['length'] = 64;
+                    break;
+
                 case 'status':
                     $mapping['nullable'] = true;
                     break;
