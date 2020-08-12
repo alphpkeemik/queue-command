@@ -1,5 +1,9 @@
 <?php
 
+/*
+ * This file is part of the Ambientia QueueCommand package.
+ */
+
 namespace Ambientia\QueueCommand;
 
 use DateTime;
@@ -40,15 +44,13 @@ class Repository
         return $qb->getQuery()->getOneOrNullResult(Query::HYDRATE_SINGLE_SCALAR);
     }
 
-    public function insertIfNotExists(
+
+    public function insert(
         string $service,
         DateTime $ttl = null,
         int $priority = null,
         ...$arguments
-    ): bool {
-        if ($this->isQueued($service, $arguments, $ttl)) {
-            return false;
-        }
+    ): void {
         $queueCommand = new QueueCommandEntity();
         $queueCommand->setService($service);
         $queueCommand->setArguments($arguments);
@@ -60,6 +62,19 @@ class Repository
         }
         $this->getEm()->persist($queueCommand);
         $this->flushNeeded = true;
+
+    }
+
+    public function insertIfNotExists(
+        string $service,
+        DateTime $ttl = null,
+        int $priority = null,
+        ...$arguments
+    ): bool {
+        if ($this->isQueued($service, $arguments, $ttl)) {
+            return false;
+        }
+        $this->insert($service, $ttl, $priority, ...$arguments);
 
         return true;
     }

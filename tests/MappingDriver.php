@@ -1,4 +1,9 @@
 <?php
+
+/*
+ * This file is part of the Ambientia QueueCommand package.
+ */
+
 namespace Ambientia\QueueCommand\Tests;
 
 use Ambientia\QueueCommand\QueueCommandEntity;

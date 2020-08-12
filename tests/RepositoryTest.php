@@ -1,5 +1,9 @@
 <?php
 
+/*
+ * This file is part of the Ambientia QueueCommand package.
+ */
+
 namespace Ambientia\QueueCommand\Tests;
 
 use Ambientia\QueueCommand\QueueCommandEntity;
@@ -57,9 +61,60 @@ class RepositoryTest extends TestCase
         $actual = $service->countQueuedByService($serviceName);
         static::assertEquals(2, $actual);
     }
-
     /**
-     * @dataProvider dataInsertIfNotExists
+     * @dataProvider dataInsert
+     *
+     * @param string        $service
+     * @param DateTime|null $ttl
+     * @param int|null      $priority
+     * @param mixed         ...$arguments
+     */
+    public function testInsert(
+        string $service,
+        DateTime $ttl = null,
+        int $priority = null,
+        ...$arguments
+    ): void {
+        $events = [
+            'postFlush',
+            'onClear',
+            'postPersist',
+        ];
+        $listener = new class() {
+            public $calls = [];
+
+            public function __call($name, $arguments)
+            {
+                $this->calls[] = [$name, $arguments];
+            }
+        };
+
+        $doctrine = $this->createDoctrine();
+        $em = $doctrine->getManagerForClass(QueueCommandEntity::class);
+        $em->getEventManager()->addEventListener($events, $listener);
+
+        $repository = new Repository($doctrine);
+
+        //stage one, none queued
+        $listener->calls = [];
+        $repository->insert($service, $ttl, $priority, ...$arguments);
+
+        $repository->flushAndClear();
+        self::assertCount(3, $listener->calls);
+        self::assertSame('postPersist', $listener->calls[0][0]);
+        self::assertSame('postFlush', $listener->calls[1][0]);
+        self::assertSame('onClear', $listener->calls[2][0]);
+
+        //stage two, service queued
+        $listener->calls = [];
+        $result = $repository->insertIfNotExists($service, $ttl, $priority, ...$arguments);
+        static::assertFalse($result);
+
+        $repository->flushAndClear();
+        self::assertCount(0, $listener->calls);
+    }
+    /**
+     * @dataProvider dataInsert
      *
      * @param string        $service
      * @param DateTime|null $ttl
@@ -112,7 +167,7 @@ class RepositoryTest extends TestCase
         self::assertCount(0, $listener->calls);
     }
 
-    public function dataInsertIfNotExists(): Generator
+    public function dataInsert(): Generator
     {
         yield 'only service' => [
             sprintf('App\\%s\\%s', uniqid(), uniqid()),

@@ -11,6 +11,7 @@ use DateTime;
 
 /**
  * @author mati.andreas@ambientia.ee
+ * @internal use Repository to add and manage queue
  */
 class QueueCommandEntity
 {
