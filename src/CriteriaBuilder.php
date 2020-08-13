@@ -6,26 +6,16 @@
 
 namespace Ambientia\QueueCommand;
 
-use DateTime;
 use Doctrine\Common\Collections\Criteria;
 
 /**
  * @author mati.andreas@ambientia.ee
  */
-class CriteriaBuilder implements CriteriaBuilderInterface
+class CriteriaBuilder extends AbstractMinimumCriteriaBuilder
 {
     public function build(): QueueCriteria
     {
-        $expr = Criteria::expr();
-        $criteria = new QueueCriteria();
-
-        $criteria->andWhere($expr->isNull('status'));
-        $criteria->andWhere(
-            $expr->orX(
-                $expr->isNull('ttl'),
-                $expr->lte('ttl', new DateTime())
-            )
-        );
+        $criteria = $this->buildMinimum();
         $criteria->orderBy([
             'priority' => Criteria::DESC,
             'id' => Criteria::ASC,
