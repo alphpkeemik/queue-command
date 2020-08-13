@@ -162,6 +162,7 @@ class QueueProcessorTest extends TestCase
             LockInterface::class . ':acquire',
             EntityProcessor::class . ':process',
             LockInterface::class . ':release',
+            TimeProvider::class . ':time',
             LoggerInterface::class . ':debug',
         ];
 
@@ -226,7 +227,7 @@ class QueueProcessorTest extends TestCase
 
     public function testTimeLimit(): void
     {
-        $data = [0, 21, 22];
+        $data = [0, 21];
         $timeLimit = rand(10, 20);
         $logger = $this->createMock(LoggerInterface::class);
         $logger
@@ -237,7 +238,7 @@ class QueueProcessorTest extends TestCase
                     'Breaking after time limit',
                     [
                         'timeLimit' => $timeLimit,
-                        'elapsed' => $data[2],
+                        'elapsed' => $data[1],
                     ]
                 ],
                 [
@@ -251,7 +252,7 @@ class QueueProcessorTest extends TestCase
         $timeProvider = $this->createMock(TimeProvider::class);
 
         $timeProvider
-            ->expects($this->exactly(3))
+            ->expects($this->exactly(2))
             ->method('time')
             ->willReturnCallback(function () use (&$data) {
                 return array_shift($data);
@@ -259,7 +260,7 @@ class QueueProcessorTest extends TestCase
         $entity = $this->createMock(QueueCommandEntity::class);
         $selectable = $this->createMock(Selectable::class);
         $selectable
-            ->expects($this->any())
+            ->expects($this->once())
             ->method('matching')
             ->willReturnCallback(function () use (&$entity) {
                 return new ArrayCollection([$entity]);

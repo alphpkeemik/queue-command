@@ -69,16 +69,28 @@ class QueueProcessor
             ));
         }
 
-        $innerCriteria = new Criteria($criteria->getWhereExpression(), $criteria->getOrderings(), 0, 1);
-        while (($command = $repo->matching($innerCriteria)->current())) {
-            if ($count && $timeLimit && ($this->time() - $time) >= $timeLimit) {
+        $isInTimeLimit = function () use (& $count, & $timeLimit, & $time) : bool {
+            if (!$count) {
+                return true;
+            }
+            if (!$timeLimit) {
+                return true;
+            }
+            $timeSpent = $this->time() - $time;
+            if ($timeSpent >= $timeLimit) {
                 $this->logger->debug('Breaking after time limit', [
                     'timeLimit' => $timeLimit,
-                    'elapsed' => ($this->time() - $time),
+                    'elapsed' => $timeSpent,
                 ]);
-                break;
+
+                return false;
             }
 
+            return true;
+        };
+
+        $innerCriteria = new Criteria($criteria->getWhereExpression(), $criteria->getOrderings(), 0, 1);
+        while ($isInTimeLimit() and ($command = $repo->matching($innerCriteria)->current())) {
             $lock = $this->lockProvider->create($command);
             if (!$lock->acquire(false)) {
                 $this->logger->debug('Unable acquire lock', [
