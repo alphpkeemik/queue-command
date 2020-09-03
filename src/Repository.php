@@ -49,6 +49,27 @@ class Repository
         return $qb->getQuery()->getOneOrNullResult(Query::HYDRATE_SINGLE_SCALAR);
     }
 
+    /**
+     * @param string $service
+     * @param array  $arguments
+     *
+     * @return array|QueueCommandEntity[]
+     */
+    public function getQueuedByServiceAndArguments(string $service, array $arguments): array
+    {
+        $qb = $this->createQueryBuilder();
+
+        $expr = $qb->expr();
+
+        $hash = $this->hashGenerator->generate($service, $arguments);
+
+        $qb->andWhere($expr->eq('c.hash', ':hash'));
+        $qb->andWhere($qb->expr()->isNull('c.status'));
+        $qb->setParameter('hash', $hash);
+
+        return $qb->getQuery()->getResult();
+    }
+
 
     public function insert(
         string $service,
