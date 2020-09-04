@@ -107,6 +107,20 @@ class Repository
         return true;
     }
 
+    public function getNextToExecute(QueueCriteria $criteria, int $offset):?QueueCommandEntity
+    {
+        $em = $this->doctrine->getManagerForClass(QueueCommandEntity::class);
+        $repo = $em->getRepository(QueueCommandEntity::class);
+        if (!$repo instanceof Selectable) {
+            throw new LogicException(sprintf(
+                'Only %s repository supported', Selectable::class
+            ));
+        }
+        $innerCriteria = new Criteria($criteria->getWhereExpression(), $criteria->getOrderings(), 0, 1);
+
+        return $repo->matching($innerCriteria)->current();
+    }
+
     public function flushAndClear(): void
     {
         if ($this->flushNeeded) {

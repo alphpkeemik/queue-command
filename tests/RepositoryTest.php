@@ -65,35 +65,6 @@ class RepositoryTest extends TestCase
         $actual = $service->countQueuedByService($serviceName);
         static::assertEquals(2, $actual);
     }
-
-    public function testGetQueuedByServiceAndArguments(): void
-    {
-
-        $service = new Repository(
-            $this->createDoctrine(),
-            new HashGenerator()
-        );
-        $serviceName = uniqid();
-
-        $args = [uniqid(), [uniqid() => uniqid()]];
-        $actual = $service->getQueuedByServiceAndArguments($serviceName, $args);
-        static::assertCount(0, $actual);
-
-        // real
-        $service->insertIfNotExists($serviceName, null, null, ... $args);
-        $service->insertIfNotExists($serviceName, null, 1,  ... $args);
-        $service->insertIfNotExists($serviceName, new DateTime(), null,  ... $args);
-        $service->insertIfNotExists($serviceName, new DateTime(), -1,  ... $args);
-
-        //other
-        $service->insertIfNotExists($serviceName, null, null, ['other args' => uniqid()], uniqid('other string arg'));
-
-        $service->flushAndClear();
-        $actual = $service->getQueuedByServiceAndArguments($serviceName, $args);
-        static::assertCount(4, $actual);
-
-    }
-
     /**
      * @dataProvider dataInsert
      *

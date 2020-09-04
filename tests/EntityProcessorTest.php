@@ -10,11 +10,11 @@ use Ambientia\QueueCommand\EntityProcessor;
 use Ambientia\QueueCommand\Event;
 use Ambientia\QueueCommand\Events;
 use Ambientia\QueueCommand\QueueCommandEntity;
+use Ambientia\QueueCommand\QueueRepository;
 use Ambientia\QueueCommand\States;
 use ArrayObject;
 use Closure;
 use DateTime;
-use Doctrine\Persistence\ObjectManager;
 use Exception;
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
@@ -54,7 +54,7 @@ class EntityProcessorTest extends TestCase
         ContainerInterface $container = null,
         LoggerInterface $logger = null,
         QueueCommandEntity $entity = null,
-        ObjectManager $objectManager = null
+        QueueRepository $repository = null
     ): void {
         if (!$evenDispatcher) {
             $evenDispatcher = $this->createMock(EventDispatcherInterface::class);
@@ -71,12 +71,12 @@ class EntityProcessorTest extends TestCase
         if (!$entity) {
             $entity = $this->createMock(QueueCommandEntity::class);
         }
-        if (!$objectManager) {
-            $objectManager = $this->createMock(ObjectManager::class);
+        if (!$repository) {
+            $repository = $this->createMock(QueueRepository::class);
         }
 
         $processor = new EntityProcessor($evenDispatcher, $container, $logger);
-        $processor->process($entity, $objectManager);
+        $processor->process($entity, $repository);
     }
 
     public function testAcceptance(): void
@@ -90,22 +90,20 @@ class EntityProcessorTest extends TestCase
         $stack = new ArrayObject();
         $entity = $this->createStackMock($stack, QueueCommandEntity::class);
         $evenDispatcher = $this->createStackMock($stack, EventDispatcherInterface::class);
-        $objectManager = $this->createStackMock($stack, ObjectManager::class);
+        $repository = $this->createStackMock($stack, QueueRepository::class);
         $logger = $this->createStackMock($stack, LoggerInterface::class);
-        $this->executeProcessor($evenDispatcher, null, $logger, $entity, $objectManager);
+        $this->executeProcessor($evenDispatcher, null, $logger, $entity, $repository);
         $expected = [
             QueueCommandEntity::class . ':setStarted',
             QueueCommandEntity::class . ':setStatus',
-            ObjectManager::class . ':flush',
+            QueueRepository::class . ':flush',
             EventDispatcherInterface::class . ':dispatch',
             QueueCommandEntity::class . ':getService',
             QueueCommandEntity::class . ':getArguments',
             QueueCommandEntity::class . ':setStatus',
             EventDispatcherInterface::class . ':dispatch',
             QueueCommandEntity::class . ':setEnded',
-            ObjectManager::class . ':contains',
-            ObjectManager::class . ':merge',
-            ObjectManager::class . ':flush',
+            QueueRepository::class . ':flush',
         ];
 
         $this->assertArray($expected, $stack);
@@ -118,12 +116,12 @@ class EntityProcessorTest extends TestCase
         $evenDispatcher = $this->createStackMock($stack, EventDispatcherInterface::class);
         $container = $this->createStackMock($stack, ContainerInterface::class);
         $logger = $this->createStackMock($stack, LoggerInterface::class);
-        $objectManager = $this->createStackMock($stack, ObjectManager::class);
-        $this->executeProcessor($evenDispatcher, $container, $logger, $entity, $objectManager);
+        $repository = $this->createStackMock($stack, QueueRepository::class);
+        $this->executeProcessor($evenDispatcher, $container, $logger, $entity, $repository);
         $expected = [
             QueueCommandEntity::class . ':setStarted',
             QueueCommandEntity::class . ':setStatus',
-            ObjectManager::class . ':flush',
+            QueueRepository::class . ':flush',
             EventDispatcherInterface::class . ':dispatch',
             QueueCommandEntity::class . ':getService',
             ContainerInterface::class . ':get',
@@ -134,9 +132,7 @@ class EntityProcessorTest extends TestCase
             EventDispatcherInterface::class . ':dispatch',
             QueueCommandEntity::class . ':setMessage',
             QueueCommandEntity::class . ':setEnded',
-            ObjectManager::class . ':contains',
-            ObjectManager::class . ':merge',
-            ObjectManager::class . ':flush',
+            QueueRepository::class . ':flush',
         ];
 
         $this->assertArray($expected, $stack);
@@ -234,20 +230,16 @@ class EntityProcessorTest extends TestCase
     }
 
 
-    public function testObjectManager(): void
+    public function testQueueRepository(): void
     {
         $entity = $this->createMock(QueueCommandEntity::class);
-        $objectManager = $this->createMock(ObjectManager::class);
-        $objectManager
-            ->expects($this->once())
-            ->method('contains')
-            ->with($entity);
-        $objectManager
-            ->expects($this->once())
-            ->method('merge')
+        $repository = $this->createMock(QueueRepository::class);
+        $repository
+            ->expects($this->exactly(2))
+            ->method('flush')
             ->with($entity);
 
-        $this->executeProcessor(null, null, null, $entity, $objectManager);
+        $this->executeProcessor(null, null, null, $entity, $repository);
     }
 
     private function createEventDispatcherForCallStackValue(ArrayObject $stack, QueueCommandEntity $entity)

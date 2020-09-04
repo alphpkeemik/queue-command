@@ -40,12 +40,12 @@ class EntityProcessor
         $this->logger = $logger;
     }
 
-    public function process(QueueCommandEntity $command, ObjectManager $em): void
+    public function process(QueueCommandEntity $command, QueueRepository $repository): void
     {
 
         $command->setStarted(new DateTime());
         $command->setStatus(States::PROCESSING);
-        $em->flush();
+        $repository->flush($command);
 
         $this->dispatchEvent(Events::EXECUTE_STARTED, $command);
         try {
@@ -68,11 +68,8 @@ class EntityProcessor
             $command->setMessage($message);
         }
         $command->setEnded(new DateTime());
-        if (!$em->contains($command)) {
-            //todo replace it with find
-            $em->merge($command);
-        }
-        $em->flush();
+
+        $repository->flush($command);
     }
 
     private function dispatchEvent(string $state, QueueCommandEntity $command): void

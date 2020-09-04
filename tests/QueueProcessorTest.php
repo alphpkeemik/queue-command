@@ -12,17 +12,15 @@ use Ambientia\QueueCommand\QueueCommand;
 use Ambientia\QueueCommand\QueueCommandEntity;
 use Ambientia\QueueCommand\QueueCriteria;
 use Ambientia\QueueCommand\QueueProcessor;
+use Ambientia\QueueCommand\QueueRepository;
 use Ambientia\QueueCommand\TimeProvider;
 use ArrayObject;
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Collections\Expr\Expression;
 use Doctrine\Common\Collections\Selectable;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
-use Doctrine\Persistence\ObjectRepository;
-use LogicException;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Lock\LockInterface;
@@ -34,39 +32,23 @@ class QueueProcessorTest extends TestCase
 {
     use StackMockTrait;
 
-    private function createDoctrine(Selectable $selectable = null)
-    {
 
-        if (!$selectable) {
-            $selectable = $this->createSelectable();
-        }
-        $manager = $this->createConfiguredMock(ObjectManager::class, [
-            'getRepository' => $selectable
-
-        ]);
-        $doctrine = $this->createConfiguredMock(ManagerRegistry::class, [
-            'getManagerForClass' => $manager
-        ]);
-
-        return $doctrine;
-    }
-
-    private function createSelectable()
+    private function createQueueRepository()
     {
         $entity = $this->createMock(QueueCommandEntity::class);
         $data = [
             $entity
         ];
 
-        $selectable = $this->createMock(Selectable::class);
-        $selectable
+        $queueRepository = $this->createMock(QueueRepository::class);
+        $queueRepository
             ->expects($this->any())
-            ->method('matching')
+            ->method('getNextToExecute')
             ->willReturnCallback(function () use (&$data) {
-                return new ArrayCollection([array_shift($data)]);
+                return array_shift($data);
             });
 
-        return $selectable;
+        return $queueRepository;
     }
 
     private function createLockProvider()
@@ -82,7 +64,7 @@ class QueueProcessorTest extends TestCase
     }
 
     private function executeProcessor(
-        ManagerRegistry $doctrine = null,
+        QueueRepository $queueRepository = null,
         LoggerInterface $logger = null,
         EntityProcessor $entityProcessor = null,
         LockProvider $lockProvider = null,
@@ -90,8 +72,8 @@ class QueueProcessorTest extends TestCase
         QueueCriteria $criteria = null,
         int $timeLimit = null
     ): void {
-        if (!$doctrine) {
-            $doctrine = $this->createDoctrine();
+        if (!$queueRepository) {
+            $queueRepository = $this->createQueueRepository();
         }
         if (!$logger) {
             $logger = $this->createMock(LoggerInterface::class);
@@ -108,7 +90,7 @@ class QueueProcessorTest extends TestCase
         if (!$criteria) {
             $criteria = $this->createMock(QueueCriteria::class);
         }
-        $processor = new QueueProcessor($doctrine, $logger, $entityProcessor, $lockProvider, $timeProvider);
+        $processor = new QueueProcessor($queueRepository, $logger, $entityProcessor, $lockProvider, $timeProvider);
         $processor->process($criteria, $timeLimit);
     }
 
@@ -156,8 +138,6 @@ class QueueProcessorTest extends TestCase
         $this->executeProcessor(null, $logger, $entityProcessor, $lockProvider, $timeProvider, $criteria, 10);
         $expected = [
             TimeProvider::class . ':time',
-            QueueCriteria::class . ':getWhereExpression',
-            QueueCriteria::class . ':getOrderings',
             LockProvider::class . ':create',
             LockInterface::class . ':acquire',
             EntityProcessor::class . ':process',
@@ -169,22 +149,6 @@ class QueueProcessorTest extends TestCase
         $this->assertArray($expected, $stack);
     }
 
-    public function testInvalidRepository(): void
-    {
-        $repository = $this->createMock(ObjectRepository::class);
-        $manager = $this->createConfiguredMock(ObjectManager::class, [
-            'getRepository' => $repository
-        ]);
-        $doctrine = $this->createConfiguredMock(ManagerRegistry::class, [
-            'getManagerForClass' => $manager
-        ]);
-        $this->expectException(LogicException::class);
-        $this->expectExceptionMessage(sprintf(
-            'Only %s repository supported', Selectable::class
-        ));
-        $this->executeProcessor($doctrine);
-    }
-
     public function testRepositoryCall(): void
     {
         $orderings = [uniqid() => 'ASC'];
@@ -193,36 +157,14 @@ class QueueProcessorTest extends TestCase
             'getOrderings' => $orderings,
             'getWhereExpression' => $expression,
         ]);
-        $selectable = $this->createMock(Selectable::class);
-        $collection = $this->createMock(Collection::class);
-        $selectable
-            ->expects($this->exactly(1))
-            ->method('matching')
-            ->with($this->callback(function (Criteria $innerCriteria) use ($orderings, $expression) {
-                return
-                    $innerCriteria->getOrderings() === $orderings
-                    and
-                    $innerCriteria->getWhereExpression() === $expression
-                    and
-                    $innerCriteria->getFirstResult() === 0
-                    and
-                    $innerCriteria->getMaxResults() === 1;
-            }))
-            ->willReturn($collection);
-        $manager = $this->createMock(ObjectManager::class);
-        $manager
-            ->expects($this->exactly(1))
-            ->method('getRepository')
-            ->with(QueueCommandEntity::class)
-            ->willReturn($selectable);
-        $doctrine = $this->createMock(ManagerRegistry::class);
-        $doctrine
-            ->expects($this->exactly(1))
-            ->method('getManagerForClass')
-            ->with(QueueCommandEntity::class)
-            ->willReturn($manager);
+        $queueRepository = $this->createMock(QueueRepository::class);
+        $queueRepository
+            ->expects($this->once())
+            ->method('getNextToExecute')
+            ->with($criteria, 0);
 
-        $this->executeProcessor($doctrine, null, null, null, null, $criteria);
+
+        $this->executeProcessor($queueRepository, null, null, null, null, $criteria);
     }
 
     public function testTimeLimit(): void
@@ -258,15 +200,12 @@ class QueueProcessorTest extends TestCase
                 return array_shift($data);
             });
         $entity = $this->createMock(QueueCommandEntity::class);
-        $selectable = $this->createMock(Selectable::class);
-        $selectable
+        $queueRepository = $this->createMock(QueueRepository::class);
+        $queueRepository
             ->expects($this->once())
-            ->method('matching')
-            ->willReturnCallback(function () use (&$entity) {
-                return new ArrayCollection([$entity]);
-            });
+            ->method('getNextToExecute')
+            ->willReturn($entity);
 
-        $doctrine = $this->createDoctrine($selectable);
         $lock = $this->createConfiguredMock(LockInterface::class, [
             'acquire' => true
         ]);
@@ -276,7 +215,7 @@ class QueueProcessorTest extends TestCase
             ->method('create')
             ->willReturn($lock);
 
-        $this->executeProcessor($doctrine, $logger, null, $lockProvider, $timeProvider, null, $timeLimit);
+        $this->executeProcessor($queueRepository, $logger, null, $lockProvider, $timeProvider, null, $timeLimit);
     }
 
     public function testLockAcquire(): void
@@ -288,26 +227,22 @@ class QueueProcessorTest extends TestCase
         ]);
         $entity2 = $this->createMock(QueueCommandEntity::class);
 
-        // set up selectable
-        $data = [$entity1, $entity2];
-        $values = [[0, 1], [1, 1], [0, 1]];
-        $selectable = $this->createMock(Selectable::class);
-        $selectable
+        $criteria = $this->createMock(QueueCriteria::class);
+
+        $queueRepository = $this->createMock(QueueRepository::class);
+        $queueRepository
             ->expects($this->any())
-            ->method('matching')
-            ->with($this->callback(function (Criteria $criteria) use (&$values) {
-                list($a, $b) = array_shift($values);
+            ->method('getNextToExecute')
+            ->withConsecutive(
+                [$criteria, 0],
+                [$criteria, 1],
+                [$criteria, 0]
+            )
+            ->willReturnOnConsecutiveCalls(
+                $entity1,
+                $entity2
+            );
 
-                return
-                    $criteria->getFirstResult() === $a
-                    and
-                    $criteria->getMaxResults() === $b;
-            }))
-            ->willReturnCallback(function () use (&$data) {
-                return new ArrayCollection([array_shift($data)]);
-            });
-
-        $doctrine = $this->createDoctrine($selectable);
 
 
         // set up lock provider
@@ -345,7 +280,14 @@ class QueueProcessorTest extends TestCase
                 ]
             );
 
-        $this->executeProcessor($doctrine, $logger, null, $lockProvider);
+        $this->executeProcessor(
+            $queueRepository,
+            $logger,
+            null,
+            $lockProvider,
+            null,
+            $criteria
+        );
     }
 
 }

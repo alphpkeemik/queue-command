@@ -6,10 +6,6 @@
 
 namespace Ambientia\QueueCommand;
 
-use Doctrine\Common\Collections\Criteria;
-use Doctrine\Common\Collections\Selectable;
-use Doctrine\Persistence\ManagerRegistry;
-use LogicException;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -18,9 +14,9 @@ use Psr\Log\LoggerInterface;
 class QueueProcessor
 {
     /**
-     * @var ManagerRegistry
+     * @var QueueRepository
      */
-    private $doctrine;
+    private $repository;
 
     /**
      * @var LoggerInterface
@@ -42,14 +38,9 @@ class QueueProcessor
      */
     private $timeProvider;
 
-    public function __construct(
-        ManagerRegistry $doctrine,
-        LoggerInterface $logger,
-        EntityProcessor $entityProcessor,
-        LockProvider $lockProvider,
-        TimeProvider $timeProvider
-    ) {
-        $this->doctrine = $doctrine;
+    public function __construct(QueueRepository $repository, LoggerInterface $logger, EntityProcessor $entityProcessor, LockProvider $lockProvider, TimeProvider $timeProvider)
+    {
+        $this->repository = $repository;
         $this->logger = $logger;
         $this->entityProcessor = $entityProcessor;
         $this->lockProvider = $lockProvider;
@@ -61,13 +52,7 @@ class QueueProcessor
     {
         $count = 0;
         $time = $this->time();
-        $em = $this->doctrine->getManagerForClass(QueueCommandEntity::class);
-        $repo = $em->getRepository(QueueCommandEntity::class);
-        if (!$repo instanceof Selectable) {
-            throw new LogicException(sprintf(
-                'Only %s repository supported', Selectable::class
-            ));
-        }
+
 
         $isInTimeLimit = function () use (& $count, & $timeLimit, & $time) : bool {
             if (!$count) {
@@ -88,21 +73,18 @@ class QueueProcessor
 
             return true;
         };
-
-        $innerCriteria = new Criteria($criteria->getWhereExpression(), $criteria->getOrderings(), 0, 1);
-        while ($isInTimeLimit() and ($command = $repo->matching($innerCriteria)->current())) {
+        $offset = 0;
+        while ($isInTimeLimit() and ($command = $this->repository->getNextToExecute($criteria, $offset))) {
             $lock = $this->lockProvider->create($command);
             if (!$lock->acquire(false)) {
                 $this->logger->debug('Unable acquire lock', [
                     'command_id' => $command->getId(),
                 ]);
-                $innerCriteria->setFirstResult(
-                    $innerCriteria->getFirstResult() + 1
-                );
+                $offset++;
                 continue;
             }
-            $this->entityProcessor->process($command, $em);
-            $innerCriteria->setFirstResult(0);
+            $this->entityProcessor->process($command, $this->repository);
+            $offset = 0;
             $count++;
 
             $lock->release();
