@@ -1,6 +1,6 @@
 {
     "name": "ambientia/queue-command",
-    "description": "Purges old data from database",
+    "description": "Provides asynchronous queue for Symfony projects",
     "type": "library",
     "authors": [
         {
