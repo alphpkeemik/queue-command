@@ -41,7 +41,8 @@ class QueueRepository
             $offset, 1
         );
 
-        return $repo->matching($innerCriteria)->current();
+        $data = $repo->matching($innerCriteria);
+        return $data->count() ? $data->current() : null;
     }
 
     public function flush(QueueCommandEntity $entity): void
