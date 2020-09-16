@@ -118,7 +118,8 @@ class Repository
         }
         $innerCriteria = new Criteria($criteria->getWhereExpression(), $criteria->getOrderings(), 0, 1);
 
-        return $repo->matching($innerCriteria)->current();
+        $data = $repo->matching($innerCriteria);
+        return $data->count() ? $data->current() : null;
     }
 
     public function flushAndClear(): void
