@@ -64,6 +64,46 @@ class QueueRepositoryTest extends TestCase
 
     }
 
+    public function testGetNextToExecuteReturnsNull(): void
+    {
+        $mr = $this->createMock(ManagerRegistry::class);
+        $em = $this->createMock(ObjectManager::class);
+        $repo = $this->createMock(Selectable::class);
+        $criteria = $this->createConfiguredMock(QueueCriteria::class, [
+            'getWhereExpression' => $this->createMock(Expression::class),
+            'getOrderings' => [uniqid()],
+        ]);
+        $offset = rand();
+        $expected = null;
+
+        $mr
+            ->method('getManagerForClass')
+            ->with(QueueCommandEntity::class)
+            ->willReturn($em);
+        $em
+            ->expects($this->once())
+            ->method('getRepository')
+            ->with(QueueCommandEntity::class)
+            ->willReturn($repo);
+        $repo
+            ->expects($this->once())
+            ->method('matching')
+            ->with(new Criteria(
+                $criteria->getWhereExpression(),
+                $criteria->getOrderings(),
+                $offset, 1
+            ))
+            ->willReturn(new ArrayCollection([]));
+
+
+        $service = new QueueRepository(
+            $mr
+        );
+
+        $actual = $service->getNextToExecute($criteria, $offset);
+        static::assertEquals($expected, $actual);
+    }
+
     public function testGetNextToExecuteBadRepo(): void
     {
         $mr = $this->createMock(ManagerRegistry::class);
