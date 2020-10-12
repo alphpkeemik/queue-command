@@ -43,12 +43,15 @@ class MyService
 ### Add cron
 ` * * * * * ambientia:queue-command:execute >> /path/to/log/file 2>&1`
 
+### add data cleaner
+https://github.com/alphpkeemik/data-cleaner
+
 ## development
 ### todo
 * remove container dependency
 * todo replace merge it with find in EntityProcessor
-* add general manager/repository
 * todo add waiting / persistent running
+* add data cleaner interface
 
 ### Running code fixer
 
