@@ -53,6 +53,7 @@ class QueueRepository
             $objectManager->merge($entity);
         }
         $objectManager->flush();
+        $objectManager->clear();
     }
 
 }

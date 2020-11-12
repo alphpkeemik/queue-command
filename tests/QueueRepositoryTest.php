@@ -144,8 +144,11 @@ class QueueRepositoryTest extends TestCase
             ->willReturn($em);
 
         $em
-            ->expects($this->once())
+            ->expects($this->at(1))
             ->method('flush');
+        $em
+            ->expects($this->at(2))
+            ->method('clear');
         $em
             ->expects($this->once())
             ->method('contains')
