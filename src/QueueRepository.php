@@ -8,6 +8,7 @@ namespace Ambientia\QueueCommand;
 
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Collections\Selectable;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use LogicException;
 
@@ -42,18 +43,29 @@ class QueueRepository
         );
 
         $data = $repo->matching($innerCriteria);
+
         return $data->count() ? $data->current() : null;
     }
 
     public function flush(QueueCommandEntity $entity): void
     {
+        /** @var EntityManagerInterface $objectManager */
         $objectManager = $this->doctrine->getManagerForClass(QueueCommandEntity::class);
-        if (!$objectManager->contains($entity)) {
-            //todo replace it with find
-            $objectManager->merge($entity);
-        }
-        $objectManager->flush();
-        $objectManager->clear();
+        $queryBuilder = $objectManager->createQueryBuilder();
+        $queryBuilder->update(QueueCommandEntity::class, 'u')
+            ->set('u.status', ':status')
+            ->set('u.started', ':started')
+            ->set('u.ended', ':ended')
+            ->set('u.message', ':message')
+            ->where('u.id = :id')
+            ->setParameters([
+                'status' => $entity->getStatus(),
+                'message' => $entity->getMessage(),
+                'started' => $entity->getStarted(),
+                'ended' => $entity->getEnded(),
+                'id' => $entity->getId(),
+            ])->getQuery()->execute();
+
     }
 
 }

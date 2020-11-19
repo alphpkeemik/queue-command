@@ -7,6 +7,8 @@
 namespace Ambientia\QueueCommand;
 
 use DateTime;
+use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Mapping\ClassMetadataInfo;
 use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
@@ -25,8 +27,6 @@ class Repository
      * @var HashGenerator
      */
     private $hashGenerator;
-
-    private $flushNeeded = false;
 
     public function __construct(ManagerRegistry $doctrine, HashGenerator $hashGenerator)
     {
@@ -88,8 +88,29 @@ class Repository
         if (null !== $priority) {
             $queueCommand->setPriority($priority);
         }
-        $this->getEm()->persist($queueCommand);
-        $this->flushNeeded = true;
+        /** @var EntityManagerInterface $objectManager */
+        $objectManager = $this->doctrine->getManagerForClass(QueueCommandEntity::class);
+        /** @var ClassMetadataInfo $metaData */
+        $metaData = $objectManager->getMetadataFactory()->getMetadataFor(QueueCommandEntity::class);
+
+        $objectManager->getConnection()->insert(
+            $metaData->table['name'],
+            [
+                $metaData->getColumnName('service') => $service,
+                $metaData->getColumnName('arguments') => $arguments,
+                $metaData->getColumnName('hash') => $hash,
+                $metaData->getColumnName('ttl') => $ttl,
+                $metaData->getColumnName('priority') => $priority ?: 0,
+            ],
+            [
+                $metaData->fieldMappings['service']['type'],
+                $metaData->fieldMappings['arguments']['type'],
+                $metaData->fieldMappings['hash']['type'],
+                $metaData->fieldMappings['ttl']['type'],
+                $metaData->fieldMappings['priority']['type'],
+            ]
+        );
+
 
     }
 
@@ -120,16 +141,6 @@ class Repository
 
         $data = $repo->matching($innerCriteria);
         return $data->count() ? $data->current() : null;
-    }
-
-    public function flushAndClear(): void
-    {
-        if ($this->flushNeeded) {
-            $this->flushNeeded = false;
-            $em = $this->getEm();
-            $em->flush();
-            $em->clear();
-        }
     }
 
     // privates below

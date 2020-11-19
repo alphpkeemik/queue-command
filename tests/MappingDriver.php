@@ -55,6 +55,8 @@ class MappingDriver implements \Doctrine\Persistence\Mapping\Driver\MappingDrive
                     break;
 
                 case 'ttl':
+                case 'ended':
+                case 'started':
                     $mapping['type'] = 'datetime';
                     $mapping['nullable'] = true;
                     break;
@@ -62,6 +64,11 @@ class MappingDriver implements \Doctrine\Persistence\Mapping\Driver\MappingDrive
                     $mapping['type'] = 'smallint';
                     break;
 
+                case 'message':
+                    $mapping['type'] = 'text';
+                    $mapping['nullable'] = true;
+
+                    break;
                 default:
                     // only these fields used by query builder in repository
                     continue(2);

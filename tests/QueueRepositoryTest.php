@@ -20,6 +20,7 @@ use PHPUnit\Framework\TestCase;
 
 class QueueRepositoryTest extends TestCase
 {
+    use DoctrineTestTrait;
 
     public function testGetNextToExecuteAcceptance(): void
     {
@@ -132,65 +133,36 @@ class QueueRepositoryTest extends TestCase
     }
 
 
-    public function testFlushContains(): void
+    public function testFlush(): void
     {
-        $mr = $this->createMock(ManagerRegistry::class);
-        $em = $this->createMock(ObjectManager::class);
-        $entity = $this->createMock(QueueCommandEntity::class);
+        $doctrine = $this->createDoctrine($log = new SqlLog);
+        $entity = new QueueCommandEntity(
+            uniqid(), [
+            uniqid()
+        ],
+            uniqid(),
+            new \DateTime()
+        );
+        $objectManager = $doctrine->getManagerForClass(QueueCommandEntity::class);
+        $objectManager->persist($entity);
+        $objectManager->flush();
+        $objectManager->clear();
 
-        $mr
-            ->method('getManagerForClass')
-            ->with(QueueCommandEntity::class)
-            ->willReturn($em);
+        $entity->setStatus($status = uniqid('ended '));
+        $entity->setMessage($message = uniqid('message '));
+        $entity->setStarted($started = new \DateTime());
+        $entity->setEnded($ended = new \DateTime());
 
-        $em
-            ->expects($this->at(1))
-            ->method('flush');
-        $em
-            ->expects($this->at(2))
-            ->method('clear');
-        $em
-            ->expects($this->once())
-            ->method('contains')
-            ->with($entity)
-            ->willReturn(true);
-        $em
-            ->expects($this->never())
-            ->method('merge');
 
         $service = new QueueRepository(
-            $mr
+            $doctrine
         );
-
+        $log->reset();
         $service->flush($entity);
+        self::assertCount(1, $log->log);
+        self::assertRegExp('/^UPDATE/', $log->log[0]);
 
     }
 
-    public function testFlushMerge(): void
-    {
-        $mr = $this->createMock(ManagerRegistry::class);
-        $em = $this->createMock(ObjectManager::class);
-        $entity = $this->createMock(QueueCommandEntity::class);
-
-        $mr
-            ->method('getManagerForClass')
-            ->with(QueueCommandEntity::class)
-            ->willReturn($em);
-
-        $em
-            ->expects($this->once())
-            ->method('flush');
-        $em
-            ->expects($this->once())
-            ->method('merge')
-            ->with($entity);
-
-        $service = new QueueRepository(
-            $mr
-        );
-
-        $service->flush($entity);
-
-    }
 
 }

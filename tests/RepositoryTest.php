@@ -7,31 +7,16 @@
 namespace Ambientia\QueueCommand\Tests;
 
 use Ambientia\QueueCommand\HashGenerator;
-use Ambientia\QueueCommand\QueueCommandEntity;
 use Ambientia\QueueCommand\Repository;
 use Ambientia\Toolset\Test\DoctrineMockTrait;
 use DateTime;
-use Doctrine\ORM\Tools\SchemaTool;
-use Doctrine\Persistence\ManagerRegistry;
 use Generator;
 use PHPUnit\Framework\TestCase;
 
 class RepositoryTest extends TestCase
 {
-    private function createDoctrine(): ManagerRegistry
-    {
-        $em = DoctrineTestHelper::createTestEntityManager();
-        $st = new SchemaTool($em);
-        $st->updateSchema($em->getMetadataFactory()->getAllMetadata(), false);
 
-        $mr = $this->createMock(ManagerRegistry::class);
-        $mr
-            ->method('getManagerForClass')
-            ->with(QueueCommandEntity::class)
-            ->willReturn($em);
-
-        return $mr;
-    }
+    use DoctrineTestTrait;
 
     public function testCountQueuedByService(): void
     {
@@ -46,25 +31,22 @@ class RepositoryTest extends TestCase
         static::assertEquals(0, $actual);
 
         $service->insertIfNotExists($serviceName);
-        $service->flushAndClear();
         $actual = $service->countQueuedByService($serviceName);
         static::assertEquals(1, $actual);
 
         $service->insertIfNotExists($serviceName, new DateTime());
-        $service->flushAndClear();
         $actual = $service->countQueuedByService($serviceName);
         static::assertEquals(1, $actual);
 
         $service->insertIfNotExists($serviceName, null, rand());
-        $service->flushAndClear();
         $actual = $service->countQueuedByService($serviceName);
         static::assertEquals(1, $actual);
 
         $service->insertIfNotExists($serviceName, null, null, uniqid());
-        $service->flushAndClear();
         $actual = $service->countQueuedByService($serviceName);
         static::assertEquals(2, $actual);
     }
+
     /**
      * @dataProvider dataInsert
      *
@@ -79,46 +61,26 @@ class RepositoryTest extends TestCase
         int $priority = null,
         ...$arguments
     ): void {
-        $events = [
-            'postFlush',
-            'onClear',
-            'postPersist',
-        ];
-        $listener = new class() {
-            public $calls = [];
 
-            public function __call($name, $arguments)
-            {
-                $this->calls[] = [$name, $arguments];
-            }
-        };
 
-        $doctrine = $this->createDoctrine();
-        $em = $doctrine->getManagerForClass(QueueCommandEntity::class);
-        $em->getEventManager()->addEventListener($events, $listener);
+        $doctrine = $this->createDoctrine($log = new SqlLog);
 
         $repository = new Repository(
             $doctrine,
             new HashGenerator()
         );
 
-        //stage one, none queued
-        $listener->calls = [];
         $repository->insert($service, $ttl, $priority, ...$arguments);
 
-        $repository->flushAndClear();
-        self::assertCount(3, $listener->calls);
-        self::assertSame('postPersist', $listener->calls[0][0]);
-        self::assertSame('postFlush', $listener->calls[1][0]);
-        self::assertSame('onClear', $listener->calls[2][0]);
+        self::assertCount(1, $log->log);
+        self::assertRegExp('/^INSERT/', $log->log[0]);
+        $log->reset();
 
         //stage two, service queued
-        $listener->calls = [];
         $result = $repository->insertIfNotExists($service, $ttl, $priority, ...$arguments);
         static::assertFalse($result);
-
-        $repository->flushAndClear();
-        self::assertCount(0, $listener->calls);
+        self::assertCount(1, $log->log);
+        self::assertRegExp('/^SELECT/', $log->log[0]);
     }
 
     /**
@@ -135,47 +97,25 @@ class RepositoryTest extends TestCase
         int $priority = null,
         ...$arguments
     ): void {
-        $events = [
-            'postFlush',
-            'onClear',
-            'postPersist',
-        ];
-        $listener = new class() {
-            public $calls = [];
-
-            public function __call($name, $arguments)
-            {
-                $this->calls[] = [$name, $arguments];
-            }
-        };
-
-        $doctrine = $this->createDoctrine();
-        $em = $doctrine->getManagerForClass(QueueCommandEntity::class);
-        $em->getEventManager()->addEventListener($events, $listener);
+        $doctrine = $this->createDoctrine($log = new SqlLog);
 
         $repository = new Repository(
             $doctrine,
             new HashGenerator()
         );
 
-        //stage one, none queued
-        $listener->calls = [];
         $result = $repository->insertIfNotExists($service, $ttl, $priority, ...$arguments);
         static::assertTrue($result);
-
-        $repository->flushAndClear();
-        self::assertCount(3, $listener->calls);
-        self::assertSame('postPersist', $listener->calls[0][0]);
-        self::assertSame('postFlush', $listener->calls[1][0]);
-        self::assertSame('onClear', $listener->calls[2][0]);
+        self::assertCount(2, $log->log);
+        self::assertRegExp('/^SELECT/', $log->log[0]);
+        self::assertRegExp('/^INSERT/', $log->log[1]);
 
         //stage two, service queued
-        $listener->calls = [];
+        $log->reset();
         $result = $repository->insertIfNotExists($service, $ttl, $priority, ...$arguments);
         static::assertFalse($result);
-
-        $repository->flushAndClear();
-        self::assertCount(0, $listener->calls);
+        self::assertCount(1, $log->log);
+        self::assertRegExp('/^SELECT/', $log->log[0]);
     }
 
     public function dataInsert(): Generator
