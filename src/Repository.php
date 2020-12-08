@@ -180,7 +180,9 @@ class Repository
         } else {
             $qb->andWhere($expr->isNull('c.ttl'));
         }
+        $query = $qb->getQuery();
+        $result = $query->execute();
 
-        return $qb->getQuery()->getOneOrNullResult(Query::HYDRATE_SINGLE_SCALAR);
+        return $result ? true : false;
     }
 }
