@@ -1,0 +1,10 @@
+version: '3.7'
+
+services:
+  queue-command:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: ambientia-queue-command
+    volumes:
+      - ./:/var/www/html

@@ -73,14 +73,14 @@ class RepositoryTest extends TestCase
         $repository->insert($service, $ttl, $priority, ...$arguments);
 
         self::assertCount(1, $log->log);
-        self::assertRegExp('/^INSERT/', $log->log[0]);
+        self::assertMatchesRegularExpression('/^INSERT/', $log->log[0]);
         $log->reset();
 
         //stage two, service queued
         $result = $repository->insertIfNotExists($service, $ttl, $priority, ...$arguments);
         static::assertFalse($result);
         self::assertCount(1, $log->log);
-        self::assertRegExp('/^SELECT/', $log->log[0]);
+        self::assertMatchesRegularExpression('/^SELECT/', $log->log[0]);
     }
 
     /**
@@ -107,15 +107,15 @@ class RepositoryTest extends TestCase
         $result = $repository->insertIfNotExists($service, $ttl, $priority, ...$arguments);
         static::assertTrue($result);
         self::assertCount(2, $log->log);
-        self::assertRegExp('/^SELECT/', $log->log[0]);
-        self::assertRegExp('/^INSERT/', $log->log[1]);
+        self::assertMatchesRegularExpression('/^SELECT/', $log->log[0]);
+        self::assertMatchesRegularExpression('/^INSERT/', $log->log[1]);
 
         //stage two, service queued
         $log->reset();
         $result = $repository->insertIfNotExists($service, $ttl, $priority, ...$arguments);
         static::assertFalse($result);
         self::assertCount(1, $log->log);
-        self::assertRegExp('/^SELECT/', $log->log[0]);
+        self::assertMatchesRegularExpression('/^SELECT/', $log->log[0]);
     }
 
     public function dataInsert(): Generator

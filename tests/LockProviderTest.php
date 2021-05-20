@@ -11,7 +11,7 @@ use Ambientia\QueueCommand\QueueCommandEntity;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Lock\Key;
-use Symfony\Component\Lock\StoreInterface;
+use Symfony\Component\Lock\PersistingStoreInterface;
 
 /**
  * @author mati.andreas@ambientia.ee
@@ -23,7 +23,7 @@ class LockProviderTest extends TestCase
     {
 
         $logger = $this->createMock(LoggerInterface::class);
-        $store = $this->createMock(StoreInterface::class);
+        $store = $this->createMock(PersistingStoreInterface::class);
         $entity = $this->createMock(QueueCommandEntity::class);
         $id = rand();
         $entity

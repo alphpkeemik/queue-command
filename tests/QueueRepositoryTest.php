@@ -160,7 +160,7 @@ class QueueRepositoryTest extends TestCase
         $log->reset();
         $service->flush($entity);
         self::assertCount(1, $log->log);
-        self::assertRegExp('/^UPDATE/', $log->log[0]);
+        self::assertMatchesRegularExpression('/^UPDATE/', $log->log[0]);
 
     }
 

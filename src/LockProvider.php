@@ -10,7 +10,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Lock\Key;
 use Symfony\Component\Lock\Lock;
 use Symfony\Component\Lock\LockInterface;
-use Symfony\Component\Lock\StoreInterface;
+use Symfony\Component\Lock\PersistingStoreInterface;
 
 /**
  * @author mati.andreas@ambientia.ee
@@ -23,11 +23,11 @@ class LockProvider
     private $logger;
 
     /**
-     * @var StoreInterface
+     * @var PersistingStoreInterface
      */
     private $store;
 
-    public function __construct(LoggerInterface $logger, StoreInterface $store)
+    public function __construct(LoggerInterface $logger, PersistingStoreInterface $store)
     {
         $this->logger = $logger;
         $this->store = $store;

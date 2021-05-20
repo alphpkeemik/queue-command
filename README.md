@@ -47,6 +47,11 @@ class MyService
 https://github.com/alphpkeemik/data-cleaner
 
 ## development
+
+Run docker `docker-composer up -d`
+
+Bash to container `docker/bash.sh`
+
 ### todo
 * remove container dependency
 * todo replace merge it with find in EntityProcessor
