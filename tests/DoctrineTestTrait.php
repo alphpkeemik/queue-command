@@ -17,7 +17,7 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 trait DoctrineTestTrait
 {
-    private function createDoctrine(SQLLogger $SQLLogger = null): ManagerRegistry
+    private function createDoctrine(SqlLog $SQLLogger = null): ManagerRegistry
     {
         $em = DoctrineTestHelper::createTestEntityManager();
         $st = new SchemaTool($em);

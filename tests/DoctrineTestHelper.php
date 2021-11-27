@@ -6,7 +6,6 @@
 
 namespace Ambientia\QueueCommand\Tests;
 
-use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\ORM\Configuration;
 use Doctrine\ORM\EntityManager;
 use PHPUnit\Framework\TestCase;
@@ -44,8 +43,6 @@ class DoctrineTestHelper
         $config->setProxyDir(sys_get_temp_dir());
         $config->setProxyNamespace('SymfonyTests\Doctrine');
         $config->setMetadataDriverImpl(new MappingDriver());
-        $config->setQueryCacheImpl(new ArrayCache());
-        $config->setMetadataCacheImpl(new ArrayCache());
 
         return $config;
     }

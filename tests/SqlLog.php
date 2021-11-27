@@ -7,11 +7,12 @@
 namespace Ambientia\QueueCommand\Tests;
 
 use Doctrine\DBAL\Logging\EchoSQLLogger;
+use Doctrine\DBAL\Logging\SQLLogger;
 
 /**
  * @author mati.andreas@ambientia.ee
  */
-class SqlLog extends EchoSQLLogger
+class SqlLog implements SQLLogger
 {
     public $log = [];
 
@@ -26,4 +27,7 @@ class SqlLog extends EchoSQLLogger
         $this->log = [];
     }
 
+    public function stopQuery()
+    {
+    }
 }
