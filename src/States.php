@@ -17,4 +17,5 @@ class States
     const FAILED = 'failed';
     const FINISHED = 'finished';
     const FATAL = 'fatal';
+    const CANCELED = 'canceled';
 }

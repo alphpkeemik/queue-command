@@ -150,5 +150,25 @@ class RepositoryTest extends TestCase
         ];
     }
 
+    public function testCancelByServiceAndArguments(): void
+    {
+        $doctrine = $this->createDoctrine($log = new SqlLog);
 
+        $hashGenerator = $this->createMock(HashGenerator::class);
+        $hashGenerator
+            ->expects($this->once())
+            ->method('generate')
+            ->with(
+                $serviceName = uniqid(), $arguments = [uniqid(),]
+            )
+            ->willReturn($hash = uniqid());
+        $service = new Repository(
+            $doctrine,
+            $hashGenerator
+        );
+        $service->cancelByServiceAndArguments($serviceName, $arguments);
+        self::assertCount(1, $log->log);
+        self::assertMatchesRegularExpression('/^UPDATE/', $log->log[0]);
+
+    }
 }

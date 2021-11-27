@@ -36,10 +36,11 @@ class StatesTest extends TestCase
         yield ['FAILED', 'failed'];
         yield ['FINISHED', 'finished'];
         yield ['FATAL', 'fatal'];
+        yield ['CANCELED', 'canceled'];
     }
 
     public function testConstantCount(): void
     {
-        $this->assertCount(4, static::$c);
+        $this->assertCount(5, static::$c);
     }
 }
