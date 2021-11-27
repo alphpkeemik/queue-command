@@ -51,9 +51,28 @@ class Repository
 
     /**
      * @param string $service
-     * @param array  $arguments
-     *
-     * @return array|QueueCommandEntity[]
+     * @param array $arguments
+     */
+    public function cancelByServiceAndArguments(string $service, array $arguments): void
+    {
+        /** @var EntityManagerInterface $objectManager */
+        $objectManager = $this->doctrine->getManagerForClass(QueueCommandEntity::class);
+        $queryBuilder = $objectManager->createQueryBuilder();
+        $hash = $this->hashGenerator->generate($service, $arguments);
+
+        $queryBuilder->update(QueueCommandEntity::class, 'u')
+            ->set('u.status', ':status')
+            ->where('u.hash = :hash')
+            ->setParameters([
+                'status' => States::CANCELED,
+                'hash' => $hash,
+            ])->getQuery()->execute();
+    }
+
+    /**
+     * @param string $service
+     * @param array $arguments
+     * @deprecated use cancelByServiceAndArguments instead
      */
     public function getQueuedByServiceAndArguments(string $service, array $arguments): array
     {
