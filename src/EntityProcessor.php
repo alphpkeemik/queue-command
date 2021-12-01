@@ -7,7 +7,6 @@
 namespace Ambientia\QueueCommand;
 
 use DateTime;
-use Doctrine\Persistence\ObjectManager;
 use Psr\Container\ContainerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
@@ -53,7 +52,11 @@ class EntityProcessor
             $args = $command->getArguments();
 
             $message = $service->execute(... $args);
+            if ($message) {
+                $command->setMessage($message);
+            }
             $command->setStatus(States::FINISHED);
+            $command->setEnded(new DateTime());
             $this->dispatchEvent(Events::EXECUTE_FINISHED, $command);
         } catch (Throwable $e) {
             $command->setStatus(States::FAILED);
@@ -62,12 +65,13 @@ class EntityProcessor
                 'message' => $e->getMessage()
             ]);
             $message = $e->getMessage();
+            if ($message) {
+                $command->setMessage($message);
+            }
+            $command->setEnded(new DateTime());
             $this->dispatchEvent(Events::EXECUTE_FAILED, $command);
         }
-        if ($message) {
-            $command->setMessage($message);
-        }
-        $command->setEnded(new DateTime());
+
 
         $repository->flush($command);
     }
