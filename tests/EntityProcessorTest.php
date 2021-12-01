@@ -101,8 +101,8 @@ class EntityProcessorTest extends TestCase
             QueueCommandEntity::class . ':getService',
             QueueCommandEntity::class . ':getArguments',
             QueueCommandEntity::class . ':setStatus',
-            EventDispatcherInterface::class . ':dispatch',
             QueueCommandEntity::class . ':setEnded',
+            EventDispatcherInterface::class . ':dispatch',
             QueueRepository::class . ':flush',
         ];
 
@@ -129,9 +129,9 @@ class EntityProcessorTest extends TestCase
             QueueCommandEntity::class . ':setStatus',
             QueueCommandEntity::class . ':getId',
             LoggerInterface::class . ':error',
-            EventDispatcherInterface::class . ':dispatch',
             QueueCommandEntity::class . ':setMessage',
             QueueCommandEntity::class . ':setEnded',
+            EventDispatcherInterface::class . ':dispatch',
             QueueRepository::class . ':flush',
         ];
 
@@ -185,10 +185,10 @@ class EntityProcessorTest extends TestCase
             ':' . States::PROCESSING,
             'getService',
             'getArguments',
-            'setStatus',
-            ':' . States::FINISHED,
             'setMessage',
             ':' . $message,
+            'setStatus',
+            ':' . States::FINISHED,
             'setEnded',
             date(':Y-m-d h:i:s'),
         ];
